@@ -137,11 +137,35 @@ export class ReportBuilder extends React.Component<
     var pagesHtml = [];
     for (let i = 0; i < pages.length; i++) {
       let page = pages[i];
+      
+      this.checkPageOverflow(page, pages, i);
+      
       pagesHtml[i] = page.innerHTML;
     }
     this.setState({
       reports: [{ report: { pages: pagesHtml } }]
     });
+  }
+
+  // TODO: handle overflow backwards(when user deletes content)
+  checkPageOverflow(page: any, pagesArr: Array<any>, index: number) {
+    const { scrollHeight, offsetHeight, children } = page;
+    
+    if (scrollHeight > offsetHeight) {
+      const lastItem = children[children.length - 1];
+      const nextPage = pagesArr[index + 1];
+      const { firstChild } = nextPage;
+
+      if (nextPage) {
+        if (firstChild) {
+          nextPage.insertBefore(lastItem, firstChild);
+        } else {
+          nextPage.appendChild(lastItem);
+        };
+      } else {
+        // TODO: handle this case
+      }
+    };
   }
 
   addPage() {
