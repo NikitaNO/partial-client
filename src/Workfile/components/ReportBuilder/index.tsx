@@ -146,32 +146,57 @@ export class ReportBuilder extends React.Component<
     });
   }
 
-  // TODO: handle overflow backwards(when user deletes content)
   checkPageOverflow(page: any, pagesArr: Array<any>, index: number, pagesHtml: Array<any>) {
     const { children } = page;
     const scrollHeight = this.getScrollHeight(page);
     const clientHeight = this.getClientHeight(page);
     
     if (scrollHeight > clientHeight) {
-      const lastItem = children[children.length - 1];
+      const currentPageLastItem = children[children.length - 1];
+      const nextPage = pagesArr[index + 1];
+      const newPage = pagesHtml[pagesArr.length];
+      
+      this.overflowContentFurther(currentPageLastItem, nextPage, newPage);
+    } else if (scrollHeight < clientHeight) {
+      if (pagesArr.length - 1 === index) {
+        return; // the item is last, no actions are needed
+      };
       const nextPage = pagesArr[index + 1];
       
-      if (nextPage) {
-        const { firstChild } = nextPage;
-
-        if (firstChild) {
-          nextPage.insertBefore(lastItem, firstChild);
-        } else {
-          nextPage.appendChild(lastItem);
-        };
-      } else {
-        // this.addPage method won't work because of state change in two places almost at the same time
-        lastItem.remove();
-        pagesHtml[pagesArr.length] = lastItem.outerHTML;
-      }
+      this.overflowContentBackwards(page, nextPage, scrollHeight, clientHeight);
     };
   }
 
+  overflowContentFurther(currentPageLastItem, nextPage, newPage) {
+    if (nextPage) {
+      const { firstChild } = nextPage;
+
+      if (firstChild) {
+        nextPage.insertBefore(currentPageLastItem, firstChild);
+      } else {
+        nextPage.appendChild(currentPageLastItem);
+      };
+    } else {
+      // this.addPage method won't work because of state change in two places almost at the same time
+      // so i have to create a new page manually
+      newPage = currentPageLastItem.outerHTML;
+      currentPageLastItem.remove();
+    }
+  }
+
+  overflowContentBackwards(page, nextPage, scrollHeight, clientHeight) {
+    const nextPageFirstChild = nextPage.children[0];
+    
+    if (nextPageFirstChild) {
+      const childHeight = nextPageFirstChild.offsetHeight;
+
+      if (childHeight + scrollHeight < clientHeight) {
+        page.appendChild(nextPageFirstChild)
+      }
+    }
+  }
+
+  // calculate scroll height manually, because we can't get height of content with js
   getScrollHeight(page) {
     const elem = document.createElement('div');
     elem.innerHTML = page.innerHTML;
@@ -186,6 +211,7 @@ export class ReportBuilder extends React.Component<
     return offsetHeight;
   }
   
+  // calculate client height manually, because we can't get height without vertical paddings with js
   getClientHeight(page) {
     const computedStyle = getComputedStyle(page);
     const { offsetHeight } = page;
