@@ -133,13 +133,12 @@ export class ReportBuilder extends React.Component<
   handleChange(evt: any) {
     this.handleSelectionChange();
     var pages: any = document.querySelectorAll('.' + styles.page);
-    var pageClones = [];
     var pagesHtml = [];
     for (let i = 0; i < pages.length; i++) {
       let page = pages[i];
       
-      this.checkPageOverflow(page, pages, i);
-      
+      this.checkPageOverflow(page, pages, i, pagesHtml);
+  
       pagesHtml[i] = page.innerHTML;
     }
     this.setState({
@@ -148,22 +147,24 @@ export class ReportBuilder extends React.Component<
   }
 
   // TODO: handle overflow backwards(when user deletes content)
-  checkPageOverflow(page: any, pagesArr: Array<any>, index: number) {
+  checkPageOverflow(page: any, pagesArr: Array<any>, index: number, pagesHtml: Array<any>) {
     const { scrollHeight, offsetHeight, children } = page;
     
     if (scrollHeight > offsetHeight) {
       const lastItem = children[children.length - 1];
       const nextPage = pagesArr[index + 1];
-      const { firstChild } = nextPage;
-
+      
       if (nextPage) {
+        const { firstChild } = nextPage;
+
         if (firstChild) {
           nextPage.insertBefore(lastItem, firstChild);
         } else {
           nextPage.appendChild(lastItem);
         };
       } else {
-        // TODO: handle this case
+        // this.addPage doesn't work because of state change in two places almost at the same time
+        pagesHtml[pagesArr.length] = lastItem.outerHTML;
       }
     };
   }
