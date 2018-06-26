@@ -146,10 +146,10 @@ export class ReportBuilder extends React.Component<
     });
   }
 
-  checkPageOverflow(page: any, pagesArr: Array<any>, index: number, pagesHtml: Array<any>) {
-    const { children } = page;
-    const scrollHeight = this.getScrollHeight(page);
-    const clientHeight = this.getClientHeight(page);
+  checkPageOverflow(currentPage: any, pagesArr: Array<any>, index: number, pagesHtml: Array<any>) {
+    const { children } = currentPage;
+    const scrollHeight = this.getScrollHeight(currentPage);
+    const clientHeight = this.getClientHeight(currentPage);
     
     if (scrollHeight > clientHeight) {
       const currentPageLastItem = children[children.length - 1];
@@ -163,7 +163,7 @@ export class ReportBuilder extends React.Component<
       };
       const nextPage = pagesArr[index + 1];
       
-      this.overflowContentBackwards(page, nextPage, scrollHeight, clientHeight);
+      this.overflowContentBackwards(currentPage, nextPage, scrollHeight, clientHeight);
     };
   }
 
