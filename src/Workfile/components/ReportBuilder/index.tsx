@@ -62,7 +62,7 @@ export class ReportBuilder extends React.Component<
       figure: false,
       tag: '',
       textAlign: '',
-      zoom: 100
+      zoom: 50
     };
     this.getReports = this.getReports.bind(this);
     this.saveReport = this.saveReport.bind(this);
@@ -148,9 +148,11 @@ export class ReportBuilder extends React.Component<
 
   // TODO: handle overflow backwards(when user deletes content)
   checkPageOverflow(page: any, pagesArr: Array<any>, index: number, pagesHtml: Array<any>) {
-    const { scrollHeight, offsetHeight, children } = page;
+    const { children } = page;
+    const scrollHeight = this.getScrollHeight(page);
+    const clientHeight = this.getClientHeight(page);
     
-    if (scrollHeight > offsetHeight) {
+    if (scrollHeight > clientHeight) {
       const lastItem = children[children.length - 1];
       const nextPage = pagesArr[index + 1];
       
@@ -163,10 +165,33 @@ export class ReportBuilder extends React.Component<
           nextPage.appendChild(lastItem);
         };
       } else {
-        // this.addPage doesn't work because of state change in two places almost at the same time
+        // this.addPage method won't work because of state change in two places almost at the same time
+        lastItem.remove();
         pagesHtml[pagesArr.length] = lastItem.outerHTML;
       }
     };
+  }
+
+  getScrollHeight(page) {
+    const elem = document.createElement('div');
+    elem.innerHTML = page.innerHTML;
+    elem.className = 'clearfix';
+    elem.style.visibility = 'hidden';
+
+    page.appendChild(elem);
+    const { offsetHeight } = elem;
+    
+    elem.remove();
+    
+    return offsetHeight;
+  }
+  
+  getClientHeight(page) {
+    const computedStyle = getComputedStyle(page);
+    const { offsetHeight } = page;
+    const height = offsetHeight - parseFloat(computedStyle.paddingTop) - parseFloat(computedStyle.paddingBottom);
+
+    return height;
   }
 
   addPage() {
